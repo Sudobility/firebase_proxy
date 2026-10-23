@@ -1,6 +1,6 @@
 {
   "name": "firebase_proxy",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Reverse proxy for Firebase endpoints (Auth, Remote Config, Analytics) for regions where googleapis.com is blocked",
   "type": "module",
@@ -11,8 +11,8 @@
     "test:unit": "bun test"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.0",
-    "typescript": "^5.7.0"
+    "@types/bun": "~1.3.14",
+    "typescript": "~5.9.3"
   },
   "repository": {
     "type": "git",
