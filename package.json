@@ -1,6 +1,6 @@
 {
   "name": "firebase_proxy",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Reverse proxy for Firebase endpoints (Auth, Remote Config, Analytics) for regions where googleapis.com is blocked",
   "type": "module",
