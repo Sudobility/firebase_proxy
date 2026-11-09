@@ -28,6 +28,46 @@ Path prefixes → upstreams:
 | `/gtm`             | www.googletagmanager.com              | gtag.js script |
 | `/ga`              | region1.google-analytics.com          | Analytics collect |
 
+## Repository layout
+
+| Path                         | What it is |
+|------------------------------|------------|
+| `src/proxy.ts`               | Pure, runtime-agnostic proxy logic (routing, key allowlist, CORS, header stripping) |
+| `src/index.ts`               | Bun HTTP server (Docker variant) wrapping `proxy.ts`; adds `/health` |
+| `src/proxy.test.ts`          | Unit tests for `proxy.ts` (run with `bun test`) |
+| `worker/worker.js`           | Cloudflare Worker variant — same path contract, inlined (no shared import) |
+| `worker/wrangler.toml`       | Worker config (route/custom domain); real secrets stay out of the repo |
+| `nginx/firebase-proxy.conf`  | nginx variant — same path scheme, **fail-closed** key allowlist |
+| `web/firebaseProxyShim.ts`   | Standalone client shim that reroutes the Firebase JS SDK through the proxy |
+| `Dockerfile`                 | Builds the Bun server image (`bun run src/index.ts`) |
+
+The three proxy variants (`worker.js`, `src/`, nginx) are independent
+implementations of the same path/key/CORS contract — keep them in sync. See the
+header comment in `src/proxy.ts` for the two intentional Bun↔Worker differences.
+
+## Local development
+
+Prerequisite: [Bun](https://bun.sh) (the Bun server and tests use it; no `npm
+install` step — Bun runs the TypeScript source directly).
+
+```sh
+bun install                 # dev deps only (@types/bun, typescript)
+cp .env.example .env         # set PORT / ALLOWED_API_KEYS / ALLOWED_ORIGINS
+bun run dev                  # watch-mode server on $PORT (default 8080)
+```
+
+`package.json` scripts:
+
+| Script              | Command                | Purpose |
+|---------------------|------------------------|---------|
+| `bun run start`     | `bun run src/index.ts` | Run the Bun server once |
+| `bun run dev`       | `bun --watch src/index.ts` | Run with reload on change |
+| `bun run typecheck` | `bunx tsc --noEmit`    | Type-check `src/` |
+| `bun run test:unit` | `bun test`             | Run `src/proxy.test.ts` (plain `bun test` works too) |
+
+For the Cloudflare Worker variant, develop with `cd worker && npx wrangler dev`
+(reads `worker/.dev.vars`).
+
 ## Deploy — Cloudflare Worker (easiest)
 
 1. Edit `worker/wrangler.toml`: set your domain in `routes`.
